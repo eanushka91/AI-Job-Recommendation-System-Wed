@@ -1,4 +1,4 @@
-import { JobRecommendation, UserProfile, ApiResponse } from "../types/types";
+import { JobRecommendation, UserProfile, ApiResponse, PaginatedJobRecommendations, LoadMoreApiResponse } from "../types/types";
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -6,17 +6,10 @@ export const submitProfile = async (profile: UserProfile): Promise<ApiResponse> 
   try {
     const formData = new FormData();
 
-    // Append CV file if it exists
     if (profile.cv) {
       formData.append('file', profile.cv);
-      console.log(formData);
     }
-
-    // Append skills as a JSON array instead of comma-separated string
     formData.append('skills', JSON.stringify(profile.skills));
-
-    // Format experiences as simple strings in the format expected by the backend
-    // Example: "Software Engineer at ABC 2020-2022"
     const formattedExperiences = profile.experiences.map(exp => {
       let expString = `${exp.jobTitle} at ${exp.company}`;
       if (exp.startDate && exp.endDate) {
@@ -25,9 +18,6 @@ export const submitProfile = async (profile: UserProfile): Promise<ApiResponse> 
       return expString;
     });
     formData.append('experience', JSON.stringify(formattedExperiences));
-
-    // Format education as simple strings in the format expected by the backend
-    // Example: "Bachelor in Computer Science"
     const formattedEducation = profile.education.map(edu => {
       let eduString = `${edu.degree} at ${edu.institution}`;
       if (edu.graduationDate) {
@@ -36,8 +26,6 @@ export const submitProfile = async (profile: UserProfile): Promise<ApiResponse> 
       return eduString;
     });
     formData.append('education', JSON.stringify(formattedEducation));
-
-    // Add location if available
     if (profile.location) {
       formData.append('location', profile.location);
     }
@@ -48,22 +36,57 @@ export const submitProfile = async (profile: UserProfile): Promise<ApiResponse> 
     });
 
     if (!response.ok) {
-      throw new Error('Failed to submit profile');
+      const errorData = await response.json().catch(() => ({ message: 'Failed to submit profile' }));
+      throw new Error(errorData.message || 'Failed to submit profile');
     }
 
-    // Parse the response
     const responseData = await response.json();
-    
-    // Transform the response to match our expected ApiResponse format
+
+    // Assuming responseData.recommendations is the PaginatedJobRecommendations object from the backend
     return {
       message: responseData.message,
       url: responseData.url,
       user_id: responseData.user_id,
       resume_id: responseData.resume_id,
-      job_recommendations: responseData.recommendations?.items || []
+      job_recommendations_initial: responseData.recommendations || { items: [], total: 0, page: 1, size: 10, pages: 0, has_next: false, has_prev: false }
     };
   } catch (error) {
     console.error('Error submitting profile:', error);
+    throw error;
+  }
+};
+
+export const loadMoreRecommendations = async (
+  resumeId: number,
+  location: string | undefined,
+  page: number,
+  size: number = 10 // Default page size
+): Promise<PaginatedJobRecommendations> => {
+  try {
+    const queryParams = new URLSearchParams({
+        page: String(page),
+        size: String(size),
+    });
+    if (location) {
+        queryParams.append('location', location);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/recommendations/${resumeId}?${queryParams.toString()}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to load more recommendations' }));
+      throw new Error(errorData.message || 'Failed to load more recommendations');
+    }
+
+    const responseData: LoadMoreApiResponse = await response.json();
+    // The backend /api/recommendations/{resume_id} returns a structure containing a 'recommendations' field
+    // which is the PaginatedJobRecommendations object.
+    return responseData.recommendations || { items: [], total: 0, page: page, size: size, pages: 0, has_next: false, has_prev: false };
+
+  } catch (error) {
+    console.error('Error loading more recommendations:', error);
     throw error;
   }
 };

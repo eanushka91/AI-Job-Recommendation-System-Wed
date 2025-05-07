@@ -1,96 +1,117 @@
-import React, { useState } from 'react';
-import { Experience, Education } from '../types/types';
+// ExperiencePage.tsx
+
+import React, { useState, useEffect } from 'react';
+import { Experience, Education } from '../types/types'; // Make sure this path is correct
 
 interface ExperiencePageProps {
+  initialExperiences: Experience[];
+  initialEducation: Education[];
   onSubmit: (experiences: Experience[], education: Education[]) => void;
   onBack: () => void;
 }
 
-const initialExperience: Experience = {
+const initialExperienceData: Experience = { // Renamed to avoid conflict if Experience is also a class/type
   jobTitle: '',
   company: '',
+  startDate: '',
+  endDate: '',
+  description: ''
 };
 
-const initialEducation: Education = {
+const initialEducationData: Education = { // Renamed
   degree: '',
   institution: '',
+  graduationDate: ''
 };
 
-const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => {
-  const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [education, setEducation] = useState<Education[]>([]);
-  const [hasWorkExperience, setHasWorkExperience] = useState<boolean | null>(null);
-  
-  const [currentExperience, setCurrentExperience] = useState<Experience>(initialExperience);
-  const [currentEducation, setCurrentEducation] = useState<Education>(initialEducation);
-  
-  const handleExperienceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const ExperiencePage: React.FC<ExperiencePageProps> = ({
+  initialExperiences,
+  initialEducation,
+  onSubmit,
+  onBack
+}) => {
+  const [experiences, setExperiences] = useState<Experience[]>(initialExperiences || []);
+  const [education, setEducation] = useState<Education[]>(initialEducation || []);
+
+  const [hasWorkExperience, setHasWorkExperience] = useState<boolean | null>(() => {
+    // Initialize based on whether initialExperiences has items,
+    // but only if it's not an empty array explicitly passed (e.g. user selected "No" previously)
+    if (initialExperiences && initialExperiences.length > 0) {
+        return true;
+    }
+    // If initialExperiences is an empty array but was explicitly set (meaning user chose "No"),
+    // we should reflect that. This logic might need refinement based on how initialExperiences
+    // is persisted across sessions or navigations. For a fresh form, null is better.
+    // For now, if it's empty or undefined, default to null to force a choice.
+    return null;
+  });
+
+
+  // State for the current item being entered in the form
+  const [currentExperience, setCurrentExperience] = useState<Experience>({ ...initialExperienceData });
+  const [currentEducation, setCurrentEducation] = useState<Education>({ ...initialEducationData });
+
+  // Reset current experience form after a new experience is added to the list
+  useEffect(() => {
+    setCurrentExperience({ ...initialExperienceData });
+  }, [experiences]); // experiences array එක වෙනස් උනාම මේක වැඩ කරයි
+
+  // Reset current education form after a new education item is added to thelist
+  useEffect(() => {
+    setCurrentEducation({ ...initialEducationData });
+  }, [education]); // education array එක වෙනස් උනාම මේක වැඩ කරයි
+
+  const handleExperienceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCurrentExperience(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleEducationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCurrentEducation(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const addExperience = () => {
     if (currentExperience.jobTitle && currentExperience.company) {
-      setExperiences([...experiences, currentExperience]);
-      setCurrentExperience(initialExperience);
+      setExperiences(prev => [...prev, { ...currentExperience }]);
+      // The useEffect depending on 'experiences' will now reset currentExperience
     }
   };
-  
+
   const addEducation = () => {
     if (currentEducation.degree && currentEducation.institution) {
-      setEducation([...education, currentEducation]);
-      setCurrentEducation(initialEducation);
+      setEducation(prev => [...prev, { ...currentEducation }]);
+      // The useEffect depending on 'education' will now reset currentEducation
     }
   };
-  
+
   const handleSubmit = () => {
     if (education.length > 0) {
-      // Make sure all experiences have the required fields
-      const formattedExperiences = experiences.map(exp => ({
-        jobTitle: exp.jobTitle,
-        company: exp.company,
-        startDate: exp.startDate || '',
-        endDate: exp.endDate || '',
-        description: exp.description || ''
-      }));
-      
-      // Make sure all education entries have the required fields
-      const formattedEducation = education.map(edu => ({
-        degree: edu.degree,
-        institution: edu.institution,
-        graduationDate: edu.graduationDate || ''
-      }));
-      
-      onSubmit(formattedExperiences, formattedEducation);
+      // If user selected "No" for experience, the experiences array will be empty.
+      // This empty array is passed to onSubmit.
+      onSubmit(experiences, education);
+    } else {
+      alert("Please add at least one education entry. Education is mandatory.");
     }
   };
 
   const removeEducation = (index: number) => {
-    const updatedEducation = [...education];
-    updatedEducation.splice(index, 1);
-    setEducation(updatedEducation);
+    setEducation(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeExperience = (index: number) => {
-    const updatedExperiences = [...experiences];
-    updatedExperiences.splice(index, 1);
-    setExperiences(updatedExperiences);
+    setExperiences(prev => prev.filter((_, i) => i !== index));
   };
-  
+
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-6">Add Experience</h2>
-      
+      <h2 className="text-2xl font-semibold mb-6">Add Experience & Education</h2>
+
       {/* Education Section */}
       <div className="mb-8">
         <h3 className="text-xl font-medium mb-4">Education Details</h3>
         <p className="text-gray-600 mb-4">Please provide your educational background (mandatory)</p>
-        
+
         {education.map((edu, index) => (
           <div key={index} className="bg-gray-50 p-4 rounded-md mb-4 flex justify-between items-center">
             <div>
@@ -109,13 +130,11 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
             </button>
           </div>
         ))}
-        
+
         <div className="bg-white p-4 border border-gray-200 rounded-md mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Degree/Qualification
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Degree/Qualification</label>
               <input
                 type="text"
                 name="degree"
@@ -126,9 +145,7 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Institution
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Institution</label>
               <input
                 type="text"
                 name="institution"
@@ -139,9 +156,7 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Graduation Date (Optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Date (Optional)</label>
               <input
                 type="text"
                 name="graduationDate"
@@ -152,7 +167,6 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
               />
             </div>
           </div>
-          
           <div className="mt-4 text-right">
             <button
               type="button"
@@ -169,11 +183,10 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
           </div>
         </div>
       </div>
-      
+
       {/* Work Experience Section */}
       <div className="mb-8">
         <h3 className="text-xl font-medium mb-4">Work Experience</h3>
-        
         <div className="mb-4">
           <p className="mb-2">Do you have any work experience?</p>
           <div className="flex space-x-4">
@@ -181,8 +194,8 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
               type="button"
               onClick={() => setHasWorkExperience(true)}
               className={`px-6 py-2 rounded-md font-medium ${
-                hasWorkExperience === true 
-                  ? 'bg-blue-600 text-white' 
+                hasWorkExperience === true
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
             >
@@ -192,28 +205,33 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
               type="button"
               onClick={() => {
                 setHasWorkExperience(false);
-                setExperiences([]);
+                setExperiences([]); // Important: Clear existing experiences if user selects "No"
               }}
               className={`px-6 py-2 rounded-md font-medium ${
-                hasWorkExperience === false 
-                  ? 'bg-blue-600 text-white' 
+                hasWorkExperience === false
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
             >
               No
             </button>
           </div>
+          {hasWorkExperience === null && (
+            <p className="text-red-500 text-sm mt-2">Please select whether you have work experience.</p>
+          )}
         </div>
-        
-        {hasWorkExperience && (
+
+        {hasWorkExperience === true && (
           <>
             {experiences.map((exp, index) => (
               <div key={index} className="bg-gray-50 p-4 rounded-md mb-4 flex justify-between items-center">
                 <div>
                   <p className="font-medium">{exp.jobTitle}</p>
                   <p className="text-gray-600">{exp.company}</p>
-                  {exp.startDate && exp.endDate && (
-                    <p className="text-gray-500 text-sm">{exp.startDate} - {exp.endDate}</p>
+                  {(exp.startDate || exp.endDate) && (
+                    <p className="text-gray-500 text-sm">
+                      {exp.startDate || 'N/A'} - {exp.endDate || 'N/A'}
+                    </p>
                   )}
                   {exp.description && <p className="text-gray-500 text-sm mt-1">{exp.description}</p>}
                 </div>
@@ -228,13 +246,11 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
                 </button>
               </div>
             ))}
-            
+
             <div className="bg-white p-4 border border-gray-200 rounded-md mb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Job Title
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
                   <input
                     type="text"
                     name="jobTitle"
@@ -245,9 +261,7 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
                   <input
                     type="text"
                     name="company"
@@ -258,9 +272,7 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date (Optional)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date (Optional)</label>
                   <input
                     type="text"
                     name="startDate"
@@ -271,9 +283,7 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date (Optional)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date (Optional)</label>
                   <input
                     type="text"
                     name="endDate"
@@ -284,21 +294,17 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
                   />
                 </div>
               </div>
-              
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (Optional)
-                </label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <textarea
                   name="description"
                   value={currentExperience.description || ''}
                   onChange={handleExperienceChange}
+                  rows={3}
                   placeholder="Brief description of your responsibilities"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
               <div className="mt-4 text-right">
                 <button
                   type="button"
@@ -316,8 +322,13 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
             </div>
           </>
         )}
+         {hasWorkExperience === false && (
+            <p className="text-gray-500 text-sm italic p-4 bg-gray-50 rounded-md">
+                No work experience will be added.
+            </p>
+        )}
       </div>
-      
+
       <div className="flex justify-between">
         <button
           type="button"
@@ -330,11 +341,11 @@ const ExperiencePage: React.FC<ExperiencePageProps> = ({ onSubmit, onBack }) => 
           type="button"
           onClick={handleSubmit}
           className={`px-6 py-2 rounded-md text-white font-medium ${
-            education.length > 0 
-              ? 'bg-blue-600 hover:bg-blue-700' 
+            education.length > 0 && hasWorkExperience !== null // Submit කරන්න කලින් Education අනිවාර්යයි සහ experience ගැන තීරණයක් අරන් තියෙන්න ඕන
+              ? 'bg-blue-600 hover:bg-blue-700'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
-          disabled={education.length === 0}
+          disabled={education.length === 0 || hasWorkExperience === null}
         >
           Submit Application
         </button>
