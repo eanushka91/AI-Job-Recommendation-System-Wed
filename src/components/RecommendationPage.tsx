@@ -54,18 +54,11 @@ const RecommendationPage: React.FC<RecommendationPageProps> = ({
     }
 
     if (filterType === 'High Match') {
-      newFilteredJobs = newFilteredJobs.filter(job => job.match_score >= 80);
+      newFilteredJobs = newFilteredJobs.filter(job => job.match_score >= 75);
     } else if (filterType === 'Mid Match') {
-      newFilteredJobs = newFilteredJobs.filter(job => job.match_score >= 50 && job.match_score < 80);
+      newFilteredJobs = newFilteredJobs.filter(job => job.match_score >= 50 && job.match_score < 75);
     } else if (filterType === 'Entry Level') {
-      newFilteredJobs = newFilteredJobs.filter(job =>
-        job.title.toLowerCase().includes('junior') ||
-        job.title.toLowerCase().includes('entry') ||
-        (job.description && (
-          job.description.toLowerCase().includes('entry level') ||
-          job.description.toLowerCase().includes('graduate role') // Example of another term
-        ))
-      );
+      newFilteredJobs = newFilteredJobs.filter(job => job.match_score >= 25 && job.match_score < 50);
     }
 
     newFilteredJobs.sort((a, b) => b.match_score - a.match_score);
@@ -106,9 +99,9 @@ const RecommendationPage: React.FC<RecommendationPageProps> = ({
   };
 
   const getScoreColor = useCallback((score: number) => {
-    if (score >= 85) return 'bg-green-500';
-    if (score >= 70) return 'bg-blue-500';
-    if (score >= 50) return 'bg-yellow-500';
+    if (score >= 75) return 'bg-green-500';
+    if (score >= 50) return 'bg-blue-500';
+    if (score >= 25) return 'bg-yellow-500';
     return 'bg-red-500'; // Changed to red for low scores
   }, []);
 

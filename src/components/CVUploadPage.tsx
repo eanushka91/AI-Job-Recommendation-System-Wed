@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import React, { useState, useRef } from 'react';
 
 interface CVUploadPageProps {
@@ -53,7 +54,7 @@ const CVUploadPage: React.FC<CVUploadPageProps> = ({ onUpload }) => {
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 cursor-pointer ${
           isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        } ${selectedFile ? 'bg-green-50 border-green-300' : ''}`}
+        } ${selectedFile ? 'bg-blue-50 border-blue-300' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -68,26 +69,28 @@ const CVUploadPage: React.FC<CVUploadPageProps> = ({ onUpload }) => {
         />
         
         {selectedFile ? (
-          <div>
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-blue-100 p-4 rounded-lg">
-                <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                   <path fillRule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm2 1h8v10H6V6z" clipRule="evenodd" />
                 </svg>
               </div>
+              <div>
+                <p className="font-medium text-gray-900">{selectedFile.name}</p>
+                <p className="text-sm text-gray-500 mt-1">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+              </div>
             </div>
-            <p className="font-medium text-gray-900">{selectedFile.name}</p>
-            <p className="text-sm text-gray-500 mt-1">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-            <button 
+            <button
               type="button"
-              className="mt-4 text-sm text-red-600 hover:text-red-800"
+              className="text-gray-400 hover:text-gray-600"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedFile(null);
               }}
             >
-              Remove file
+              <X size={20} />
             </button>
           </div>
         ) : (
