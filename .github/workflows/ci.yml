@@ -1,0 +1,37 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ] # Or your default branch (e.g., master)
+  pull_request:
+    branches: [ main ] # Or your default branch
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x] # You can specify other versions too, like [16.x, 18.x, 20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm' # Or 'yarn' if you use yarn
+
+    - name: Install dependencies
+      run: npm install # Or yarn install
+
+    - name: Run linters
+      run: npm run lint
+
+    - name: Run tests
+      run: npm test # You can add --coverage here if you want coverage reports generated
+
+    - name: Build project
+      run: npm run build

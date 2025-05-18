@@ -1,7 +1,35 @@
+// tsconfig.app.json
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+  // REMOVE any line that looks like: "extends": "./tsconfig.json",
+
+  "compilerOptions": {
+    // Essential options we discussed:
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+
+    // Common options for a Vite + React + TS project (yours might vary slightly):
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler", // Or "node" if you were using that
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true, // Vite handles the build; TypeScript only does type checking
+
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true, // Often useful with esModuleInterop
+
+    // If you use path aliases like @/*
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["./src/*"]
+    // }
+  },
+  "include": [
+    "src" // Ensure this points to your application's source code
   ]
+  // You might have "exclude" or other specific settings here too
+  // "references": [] // tsconfig.app.json usually doesn't have references itself if it's the endpoint config
 }

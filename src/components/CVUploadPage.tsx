@@ -62,6 +62,7 @@ const CVUploadPage: React.FC<CVUploadPageProps> = ({ onUpload }) => {
       >
         <input
           type="file"
+          data-testid="file-input-cv"
           ref={fileInputRef}
           onChange={handleFileChange}
           className="hidden"
