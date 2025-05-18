@@ -8,23 +8,14 @@ import { ApiResponse as SubmitApiResponse, JobRecommendation, PaginatedJobRecomm
 
 // --- 1. Define the core mock function(s) for this test file's scope ---
 const mockLoadMoreRecommendationsImplementation = jest.fn();
-// If other functions from Api.ts were used by RecommendationPage, define their mocks here too.
-// const mockSubmitProfileImplementation = jest.fn(); 
+
 
 // --- 2. Mock the API module using these pre-defined functions ---
-// This MUST be at the top-level, before other imports like the component itself.
+
 jest.mock('../api/Api', () => ({
-  __esModule: true, // Good practice for ES modules
+  __esModule: true,
   loadMoreRecommendations: mockLoadMoreRecommendationsImplementation,
-  // submitProfile: mockSubmitProfileImplementation, // Example if it were used
-  // Ensure all exports from the actual ../api/Api module that RecommendationPage might
-  // directly or indirectly use are mocked here, even if just with jest.fn()
-  // For example, if Api.ts also exports submitProfile, even if RecommendationPage
-  // doesn't use it directly, it should be listed:
-  submitProfile: jest.fn(), 
-  // Add any other named exports from your actual Api.ts file here, mocked.
-  // If you have helper functions like __setLoadMoreRecommendationsResponse exported from the *actual* Api.ts (which is unlikely)
-  // they would also need to be listed here. But typically, those helpers are only in the __mocks__ file or test file.
+  submitProfile: jest.fn(),
 }));
 
 // --- 3. Import the component under test AFTER mocks are set up ---
@@ -35,7 +26,7 @@ const mockInitialRecPageApiResponse: SubmitApiResponse = {
   message: 'Initial recommendations loaded',
   url: 'cv.pdf',
   user_id: 1,
-  resume_id: 100, 
+  resume_id: 100,
   job_recommendations_initial: {
     items: [
       { id: 'job1', title: 'Frontend Developer', company: 'Tech Solutions', location: 'New York', match_score: 85, description: '<p>Join our frontend team!</p>', url: 'http://apply.dev/1', date_posted: new Date(2024, 0, 15).toISOString(), salary: '$110k' },
@@ -52,21 +43,26 @@ const mockEmptyInitialRecPageApiResponse: SubmitApiResponse = {
 };
 
 const defaultMockLoadMoreSuccessResponse: PaginatedJobRecommendations = {
-    items: [], total: mockInitialRecPageApiResponse.job_recommendations_initial.total, 
+    items: [], total: mockInitialRecPageApiResponse.job_recommendations_initial.total,
     page: 2, size: 3, pages: 9, has_next: false, has_prev: true,
 };
 
-// Mock window.location.href
+// Mock window.location
 const originalWindowLocation = window.location;
+
 beforeAll(() => {
-    // @ts-expect-error Test environment, deliberately changing location
-    delete window.location;
-    // @ts-expect-error Test environment, deliberately changing location
-    window.location = { ...originalWindowLocation, href: '', assign: jest.fn(), replace: jest.fn() };
+    delete (window as any).location; // Using 'as any' for delete to ensure it works across environments
+    (window as any).location = {   // Cast window to any for this assignment (WORKAROUND)
+      ...originalWindowLocation,
+      href: '',
+      assign: jest.fn(),
+      replace: jest.fn(),
+      reload: jest.fn(),
+    } as Location; // Still good to cast the RHS to Location for clarity of what you're assigning
 });
+
 afterAll(() => {
-    // @ts-expect-error Test environment, restoring original location
-    window.location = originalWindowLocation;
+  (window as any).location = originalWindowLocation; // Cast window to any for this assignment (WORKAROUND)
 });
 
 const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -74,16 +70,17 @@ const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
 describe('RecommendationPage', () => {
   beforeEach(() => {
     mockLoadMoreRecommendationsImplementation.mockReset();
-    // Set a default successful implementation for loadMore for most tests
-    mockLoadMoreRecommendationsImplementation.mockImplementation(() => 
+    mockLoadMoreRecommendationsImplementation.mockImplementation(() =>
         Promise.resolve(defaultMockLoadMoreSuccessResponse)
     );
     alertMock.mockClear();
-    // @ts-expect-error Test environment, clearing mocks
-    if (window.location.assign.mockClear) (window.location.assign as jest.Mock).mockClear();
-    // @ts-expect-error Test environment, clearing mocks
-    if (window.location.replace.mockClear) (window.location.replace as jest.Mock).mockClear();
-     if (typeof window.location.href === 'string') { 
+
+    // Ensure these @ts-expect-error are still valid or remove if tsc flags them as unused
+    // @ts-expect-error Test environment, clearing mocks for window.location.assign
+    if (window.location.assign?.mockClear) (window.location.assign as jest.Mock).mockClear();
+    // @ts-expect-error Test environment, clearing mocks for window.location.replace
+    if (window.location.replace?.mockClear) (window.location.replace as jest.Mock).mockClear();
+    if (typeof window.location.href === 'string') {
         window.location.href = '';
     }
   });
@@ -131,19 +128,19 @@ describe('RecommendationPage', () => {
     expect(screen.getByText(/Frontend Developer/i)).toBeInTheDocument();
     expect(screen.queryByText(/Backend Engineer \(Node.js\)/i)).not.toBeInTheDocument();
   });
-  
+
   test('filters jobs by match score (High Match: >=75)', () => {
     render(<RecommendationPage initialApiResponse={mockInitialRecPageApiResponse} isLoadingInitially={false} resumeId={100} />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'High Match' } });
-    expect(screen.getByText(/Frontend Developer/i)).toBeInTheDocument(); // Score 85
-    expect(screen.queryByText(/Backend Engineer \(Node.js\)/i)).not.toBeInTheDocument(); // Score 70
+    expect(screen.getByText(/Frontend Developer/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Backend Engineer \(Node.js\)/i)).not.toBeInTheDocument();
   });
 
   test('filters jobs by match score (Mid Match: >=50 & <75)', () => {
     render(<RecommendationPage initialApiResponse={mockInitialRecPageApiResponse} isLoadingInitially={false} resumeId={100} />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Mid Match' } });
     expect(screen.queryByText(/Frontend Developer/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/Backend Engineer \(Node.js\)/i)).toBeInTheDocument(); // Score 70
+    expect(screen.getByText(/Backend Engineer \(Node.js\)/i)).toBeInTheDocument();
   });
 
   test('handles "Load More Jobs" successfully and appends new jobs', async () => {
@@ -151,7 +148,7 @@ describe('RecommendationPage', () => {
       { id: 'job4', title: 'DevOps Engineer', company: 'Cloud Services', location: 'Austin', match_score: 78, description: 'Manage infra.', url: 'http://apply.devops/4' },
     ];
     const loadMoreSuccessData: PaginatedJobRecommendations = {
-      items: moreJobs, total: mockInitialRecPageApiResponse.job_recommendations_initial.total, 
+      items: moreJobs, total: mockInitialRecPageApiResponse.job_recommendations_initial.total,
       page: 2, size: 3, pages: 9, has_next: true, has_prev: true,
     };
     mockLoadMoreRecommendationsImplementation.mockImplementationOnce(() => Promise.resolve(loadMoreSuccessData));
@@ -161,11 +158,11 @@ describe('RecommendationPage', () => {
     expect(screen.getByText(/Loading more jobs.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/DevOps Engineer/i)).toBeInTheDocument(); 
+      expect(screen.getByText(/DevOps Engineer/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Frontend Developer/i)).toBeInTheDocument(); 
-    expect(mockLoadMoreRecommendationsImplementation).toHaveBeenCalledWith(100, "New York", 2, 3); 
-    expect(screen.getByText(/Displaying 4 recommendations./i)).toBeInTheDocument(); 
+    expect(screen.getByText(/Frontend Developer/i)).toBeInTheDocument();
+    expect(mockLoadMoreRecommendationsImplementation).toHaveBeenCalledWith(100, "New York", 2, 3);
+    expect(screen.getByText(/Displaying 4 recommendations./i)).toBeInTheDocument();
   });
 
   test('hides "Load More Jobs" button when has_next is false after loading', async () => {
@@ -173,8 +170,8 @@ describe('RecommendationPage', () => {
       { id: 'job5', title: 'Final Job', company: 'End Corp', location: 'Remote', match_score: 60, description: 'Last one.', url: 'http://apply.end/5' },
     ];
     const finalLoadResponse: PaginatedJobRecommendations = {
-      items: finalJobs, total: mockInitialRecPageApiResponse.job_recommendations_initial.total, 
-      page: 2, 
+      items: finalJobs, total: mockInitialRecPageApiResponse.job_recommendations_initial.total,
+      page: 2,
       size: 3, pages: 9, has_next: false, has_prev: true,
     };
     mockLoadMoreRecommendationsImplementation.mockImplementationOnce(() => Promise.resolve(finalLoadResponse));
@@ -200,9 +197,9 @@ describe('RecommendationPage', () => {
     });
     expect(mockLoadMoreRecommendationsImplementation).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(/Loading more jobs.../i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Load More Jobs/i })).not.toBeInTheDocument(); 
+    expect(screen.queryByRole('button', { name: /Load More Jobs/i })).not.toBeInTheDocument();
   });
-  
+
   test('"Update Your Profile" button (when no jobs) calls window.location.href', () => {
     render( <RecommendationPage initialApiResponse={mockEmptyInitialRecPageApiResponse} isLoadingInitially={false} resumeId={101} />);
     fireEvent.click(screen.getByRole('button', { name: /Update Your Profile/i }));
@@ -212,7 +209,7 @@ describe('RecommendationPage', () => {
   test('"Update Your Profile" button (at the bottom) calls window.location.href', () => {
     render( <RecommendationPage initialApiResponse={mockInitialRecPageApiResponse} isLoadingInitially={false} resumeId={100} />);
     const updateButtons = screen.getAllByRole('button', { name: /Update Your Profile/i });
-    const bottomUpdateProfileButton = updateButtons.find(btn => btn.closest('div.mt-12')); 
+    const bottomUpdateProfileButton = updateButtons.find(btn => btn.closest('div.mt-12'));
     expect(bottomUpdateProfileButton).toBeInTheDocument();
     if (bottomUpdateProfileButton) fireEvent.click(bottomUpdateProfileButton);
     expect(window.location.href).toBe('/');
