@@ -1,6 +1,6 @@
 // ExperiencePage.test.tsx
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react'; // Removed 'act'
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ExperiencePage from './ExperiencePage'; // Adjust path if necessary
 import { Experience, Education } from '../types/types'; // Adjust path to your types
@@ -237,7 +237,8 @@ describe('ExperiencePage', () => {
       );
     });
 
-    test('shows alert and does not submit if education is missing', () => {
+    // ***** THIS IS THE MODIFIED TEST CASE *****
+    test('Submit button is disabled and submission is prevented if education is missing', () => {
       render(
         <ExperiencePage
           initialExperiences={[]}
@@ -249,10 +250,16 @@ describe('ExperiencePage', () => {
       // Choose "No" for experience, so only education is the factor
       fireEvent.click(screen.getByRole('button', { name: 'No' }));
 
-      expect(screen.getByRole('button', { name: /Submit Application/i })).toBeDisabled();
-      // Simulate click anyway to check if alert is called by submit logic
-      fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
-      expect(alertMock).toHaveBeenCalledWith("Please add at least one education entry. Education is mandatory.");
+      // Assert that the button is indeed disabled
+      const submitButton = screen.getByRole('button', { name: /Submit Application/i });
+      expect(submitButton).toBeDisabled();
+
+      // Try to click it (though it's disabled)
+      fireEvent.click(submitButton);
+
+      // Assert that the alert was NOT called (because the click handler shouldn't fire)
+      expect(alertMock).not.toHaveBeenCalled();
+      // Assert that onSubmit was NOT called
       expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
