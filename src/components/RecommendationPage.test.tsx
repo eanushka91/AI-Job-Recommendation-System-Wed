@@ -59,11 +59,14 @@ const defaultMockLoadMoreSuccessResponse: PaginatedJobRecommendations = {
 // Mock window.location.href
 const originalWindowLocation = window.location;
 beforeAll(() => {
-    delete (window as any).location;
-    (window as any).location = { ...originalWindowLocation, href: '', assign: jest.fn(), replace: jest.fn() };
+    // @ts-expect-error Test environment, deliberately changing location
+    delete window.location;
+    // @ts-expect-error Test environment, deliberately changing location
+    window.location = { ...originalWindowLocation, href: '', assign: jest.fn(), replace: jest.fn() };
 });
 afterAll(() => {
-    (window as any).location = originalWindowLocation;
+    // @ts-expect-error Test environment, restoring original location
+    window.location = originalWindowLocation;
 });
 
 const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -76,10 +79,12 @@ describe('RecommendationPage', () => {
         Promise.resolve(defaultMockLoadMoreSuccessResponse)
     );
     alertMock.mockClear();
-    (window.location.assign as jest.Mock).mockClear();
-    (window.location.replace as jest.Mock).mockClear();
-     if (typeof window.location.href === 'string') { // Check if href is assignable
-        (window.location.href as any) = '';
+    // @ts-expect-error Test environment, clearing mocks
+    if (window.location.assign.mockClear) (window.location.assign as jest.Mock).mockClear();
+    // @ts-expect-error Test environment, clearing mocks
+    if (window.location.replace.mockClear) (window.location.replace as jest.Mock).mockClear();
+     if (typeof window.location.href === 'string') { 
+        window.location.href = '';
     }
   });
 

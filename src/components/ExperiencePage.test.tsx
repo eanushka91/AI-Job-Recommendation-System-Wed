@@ -1,6 +1,6 @@
 // ExperiencePage.test.tsx
 import React from 'react';
-import { render, screen, fireEvent, within, act } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react'; // Removed 'act'
 import '@testing-library/jest-dom';
 import ExperiencePage from './ExperiencePage'; // Adjust path if necessary
 import { Experience, Education } from '../types/types'; // Adjust path to your types
@@ -250,7 +250,10 @@ describe('ExperiencePage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'No' }));
 
       expect(screen.getByRole('button', { name: /Submit Application/i })).toBeDisabled();
-      expect(alertMock).not.toHaveBeenCalled();
+      // Simulate click anyway to check if alert is called by submit logic
+      fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
+      expect(alertMock).toHaveBeenCalledWith("Please add at least one education entry. Education is mandatory.");
+      expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
     test('Submit button is disabled if work experience choice is not made', () => {

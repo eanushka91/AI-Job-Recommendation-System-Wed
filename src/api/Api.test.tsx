@@ -266,7 +266,7 @@ describe('API functions', () => {
     });
 
     it('should use default page size when not specified', async () => {
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as jest.Mock).mockResolvedValueOnce({ // Changed from (fetch as any)
         ok: true,
         json: () => Promise.resolve({
           recommendations: mockPaginatedResponse

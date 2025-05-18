@@ -1,4 +1,4 @@
-import { JobRecommendation, UserProfile, ApiResponse, PaginatedJobRecommendations, LoadMoreApiResponse } from "../types/types";
+import { UserProfile, ApiResponse, PaginatedJobRecommendations, LoadMoreApiResponse } from "../types/types"; // Removed JobRecommendation
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
