@@ -51,18 +51,21 @@ const defaultMockLoadMoreSuccessResponse: PaginatedJobRecommendations = {
 const originalWindowLocation = window.location;
 
 beforeAll(() => {
-    delete (window as any).location; // Using 'as any' for delete to ensure it works across environments
-    (window as any).location = {   // Cast window to any for this assignment (WORKAROUND)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).location; // Corresponds to ~line 54
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).location = {   // Corresponds to ~line 55
       ...originalWindowLocation,
       href: '',
       assign: jest.fn(),
       replace: jest.fn(),
       reload: jest.fn(),
-    } as Location; // Still good to cast the RHS to Location for clarity of what you're assigning
+    } as Location;
 });
 
 afterAll(() => {
-  (window as any).location = originalWindowLocation; // Cast window to any for this assignment (WORKAROUND)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).location = originalWindowLocation; // Corresponds to ~line 65
 });
 
 const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -75,7 +78,9 @@ describe('RecommendationPage', () => {
     );
     alertMock.mockClear();
 
-    // Ensure these @ts-expect-error are still valid or remove if tsc flags them as unused
+    // These @ts-expect-error directives should remain if tsc did not flag them as unused.
+    // If tsc also flags these as unused in a subsequent build, remove them too.
+    // If ESLint flags these, you might need to add eslint-disable-next-line for them as well.
     // @ts-expect-error Test environment, clearing mocks for window.location.assign
     if (window.location.assign?.mockClear) (window.location.assign as jest.Mock).mockClear();
     // @ts-expect-error Test environment, clearing mocks for window.location.replace
@@ -84,6 +89,8 @@ describe('RecommendationPage', () => {
         window.location.href = '';
     }
   });
+
+  // ... (rest of your tests remain the same as the previously validated version) ...
 
   test('renders loading state when isLoadingInitially is true', () => {
     render(
