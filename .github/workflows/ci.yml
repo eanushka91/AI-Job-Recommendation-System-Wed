@@ -35,3 +35,34 @@ jobs:
 
     - name: Build project
       run: npm run build
+
+
+  build-and-push-docker-image:
+    needs: build-and-test # Run this job only after build-and-test succeeds
+    if: github.ref == 'refs/heads/main' # Only run on pushes to the main branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Required to push to GitHub Packages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}:latest
+          # Example for more specific tagging:
+          # tags: |
+          #   ghcr.io/${{ github.repository_owner }}/ai_job_recommendation_system:latest
+          #   ghcr.io/${{ github.repository_owner }}/ai_job_recommendation_system:${{ github.sha }}

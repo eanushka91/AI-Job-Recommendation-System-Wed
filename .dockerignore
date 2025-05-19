@@ -1,0 +1,22 @@
+# Ignore Node.js modules and local environment files
+node_modules
+.env
+.env.*
+!/.env.example
+
+# Ignore build output (it will be generated inside the Docker build stage)
+dist
+build
+
+# Ignore Docker files
+Dockerfile
+.dockerignore
+
+# Ignore Git folder
+.git
+.gitignore
+
+# Ignore local development specific files
+npm-debug.log
+yarn-debug.log
+yarn-error.log
