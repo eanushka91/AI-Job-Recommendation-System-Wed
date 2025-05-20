@@ -39,9 +39,6 @@ frontend/
 
 ## 📸 UI Preview
 
-### 🏠 Homepage
-![Homepage]()
-
 ### 📄 CV Upload Page
 ![CV Upload](public/1.png)
 
@@ -50,7 +47,7 @@ frontend/
 
 ### 💼 Experience Page
 ![Experience](public/3.png)
-(public/4.png)
+![](public/4.png)
 
 ### ⏳ Loading Page
 ![Loading](public/5.png)
@@ -85,9 +82,9 @@ VITE_API_BASE_URL=http://localhost:8000
 
 🐳 Docker Setup
 Build and run the frontend in a Docker container:
-
 docker build -t ai-job-frontend .
 docker run -d -p 5173:5173 --env-file .env ai-job-frontend
+
 📂 Available Scripts
 npm run dev       
 npm run build     
@@ -101,5 +98,5 @@ Tailwind CSS is used for consistent and responsive design. Utility classes are u
 
 🤝 Contributing
 Pull requests are welcome. For major changes, please open an issue first.
-
+```
 © 2025 Anushka Eshan | All rights reserved.
