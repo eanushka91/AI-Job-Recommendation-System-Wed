@@ -1,54 +1,105 @@
-# React + TypeScript + Vite
+# 🌐 AI Job Recommendation System – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend of the AI Job Recommendation System built using **React**, **TypeScript**, and **Tailwind CSS**. It connects to a FastAPI backend and provides a user-friendly interface for job seekers to get AI-powered job recommendations, upload their CVs, and manage their profiles.
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ⚛️ React (with Vite)
+- 💅 Tailwind CSS
+- 🔤 TypeScript
+- 🐳 Docker
+- 📡 Connects to FastAPI backend
 
-## Expanding the ESLint configuration
+## 🎯 Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ✨ Responsive and clean UI using Tailwind CSS
+- 📄 CV Upload to AWS S3 (via backend)
+- 🧠 Job Recommendations via LLM (from backend)
+- 🔁 Paginated job listing (10 jobs per page)
+- 👤 User profile view with all related info
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## 📁 Project Structure
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+frontend/
+├── public/
+│ └── index.html
+├── src/
+│ ├── components/ # Reusable UI components
+│ ├── pages/ # Page-level components
+│ ├── services/ # API calls
+│ ├── types/ # TypeScript interfaces/types
+│ ├── App.tsx
+│ ├── main.tsx
+│ └── index.css
+├── tailwind.config.js
+├── Dockerfile
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📸 UI Preview
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### 🏠 Homepage
+![Homepage]()
+
+### 📄 CV Upload Page
+![CV Upload](public/1.png)
+
+### 🧠 Skills Page
+![Skills](public/2.png)
+
+### 💼 Experience Page
+![Experience](public/3.png)
+(public/4.png)
+
+### ⏳ Loading Page
+![Loading](public/5.png)
+
+### 🤖 Job Recommendation Page
+![Job Recommendation](public/6.png)
+
+### ❌ Error Pages (404 / Server Error)
+![Error Page](public/8.png)
+
+### 🔍 Job Search Page
+![Search](public/7.png)
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm or yarn
+- Docker (optional)
+
+### Installation
+
+```bash
+git clone https://github.com/your-username/ai-job-frontend.git
+cd ai-job-frontend
+npm install
+npm run dev
+Configure Environment
+Create a .env file in the root with the backend URL:
+VITE_API_BASE_URL=http://localhost:8000
+
+🐳 Docker Setup
+Build and run the frontend in a Docker container:
+
+docker build -t ai-job-frontend .
+docker run -d -p 5173:5173 --env-file .env ai-job-frontend
+📂 Available Scripts
+npm run dev       
+npm run build     
+npm run preview   
+
+🧠 Backend API Integration
+Make sure your backend (FastAPI) is running and accessible at the URL defined in .env. All frontend API calls are made to this base URL.
+
+✨ Styling
+Tailwind CSS is used for consistent and responsive design. Utility classes are used throughout the components for layout and styling.
+
+🤝 Contributing
+Pull requests are welcome. For major changes, please open an issue first.
+
+© 2025 Anushka Eshan | All rights reserved.
